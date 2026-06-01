@@ -1,0 +1,31 @@
+# 当代码推送到 main 分支时，自动触发这个流水线
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  # 任务1：构建 Docker 镜像并推送到 Docker Hub
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 第1步：拉取代码
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 第2步：登录 Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 第3步：构建镜像并推送
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: emeduo/devtoprod:latest

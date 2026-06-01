@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devtoprod
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: devtoprod
+  template:
+    metadata:
+      labels:
+        app: devtoprod
+    spec:
+      containers:
+        - name: devtoprod
+          image: emeduo/devtoprod:v1
+          ports:
+            - containerPort: 8000
