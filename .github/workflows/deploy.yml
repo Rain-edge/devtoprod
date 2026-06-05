@@ -6,26 +6,27 @@ on:
     branches: [main]
 
 jobs:
-  # 任务1：构建 Docker 镜像并推送到 Docker Hub
+  # 任务1：构建 Docker 镜像
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       # 第1步：拉取代码
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 第2步：登录 Docker Hub
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # 第2步：切换到 Minikube 的 Docker 环境（构建的镜像直接在 Minikube 内）
+      - name: Set up Minikube Docker env
+        run: |
+          & minikube -p minikube docker-env --shell powershell | Invoke-Expression
 
-      # 第3步：构建镜像并推送
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: emeduo/devtoprod:latest
+      # 第3步：构建镜像（直接在 Minikube 内构建，不需要推送）
+      - name: Build Docker image
+        run: |
+          docker build -t emeduo/devtoprod:latest .
+
+      # 第4步：更新 K8s 集群中的应用
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl set image deployment/devtoprod devtoprod=emeduo/devtoprod:latest
+          kubectl rollout status deployment/devtoprod
